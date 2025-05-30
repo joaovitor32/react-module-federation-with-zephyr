@@ -1,34 +1,28 @@
-import { defineConfig } from "vite";
-import federation from "@originjs/vite-plugin-federation";
-import react from "@vitejs/plugin-react";
-import { withZephyr } from "vite-plugin-zephyr";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { withZephyr } from 'vite-plugin-zephyr';
 
 const mfConfig = {
-  name: "remote-app",
-  plugins: [
-    react(),
-    federation({
-      name: "remote-app",
-      filename: "remoteEntry.js",
-      exposes: {
-        "./App": "./src/App",
-      },
-      shared: ["react", "react-dom"],
-    }),
-  ],
-  build: {
-    modulePreload: false,
-    target: "esnext",
-    minify: false,
-    cssCodeSplit: false,
+  name: 'remoteApp',
+  filename: 'remoteEntry.js',
+  exposes: {
+    './App': './src/App',
   },
-}
+  shared: ['react', 'react-dom'],
+};
 
 export default defineConfig({
   plugins: [
     react(),
-    withZephyr({ mfConfig })
+    withZephyr({ mfConfig }),
   ],
+  server: {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    },
+  },
   experimental: {
     renderBuiltUrl() {
       return { relative: true };

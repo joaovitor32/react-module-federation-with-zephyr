@@ -1,33 +1,39 @@
 import { defineConfig } from 'vite';
-import federation from '@originjs/vite-plugin-federation';
 import react from '@vitejs/plugin-react';
 import { withZephyr } from 'vite-plugin-zephyr';
 
 const mfConfig = {
-  name: "host",
-  plugins: [
-    react(),
-    federation({
-      name: "host",
-      remotes: {
-        remoteApp: 'http://localhost:5173/assets/remoteEntry.js',
-      },
-      shared: ["react", "react-dom"],
-    }),
-  ],
-  build: {
-    modulePreload: false,
-    target: "esnext",
-    minify: false,
-    cssCodeSplit: false,
+  name: 'vite-host',
+  filename: 'remoteEntry.js',
+  remotes: {
+    'remoteApp': {
+      name: 'remoteApp',
+      entry: 'http://localhost:4173/remoteEntry.js',
+      type: 'module',
+    },
   },
-}
+  shared: {
+    react: {
+      singleton: true,
+    },
+    'react-dom': {
+      singleton: true,
+    },
+  },
+};
 
 export default defineConfig({
   plugins: [
     react(),
     withZephyr({ mfConfig }),
   ],
+  server: {
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    },
+  },
   build: {
     target: 'chrome89',
     modulePreload: {
@@ -35,7 +41,6 @@ export default defineConfig({
         return deps.filter((dep) => {
           const isReactPackage = dep.includes('react') || dep.includes('react-dom');
           const isNotRemoteEntry = !dep.includes('remoteEntry.js');
-
           return isReactPackage && isNotRemoteEntry;
         });
       },
